@@ -1,0 +1,176 @@
+// Copyright 2014 Olivier Gillet.
+// 
+// Author: Olivier Gillet (ol.gillet@gmail.com)
+// 
+// Edited by Matthias 
+// make -f clouds/makefile upload_combo_jtag 
+
+// See http://creativecommons.org/licenses/MIT/ for more information.
+
+#include "clouds/drivers/codec.h"
+#include "clouds/drivers/system.h"
+#include "clouds/drivers/version.h"
+#include "clouds/drivers/leds.h"
+#include "clouds/drivers/switches.h"
+#include "clouds/drivers/adc.h"
+
+using namespace clouds;
+using namespace stmlib;
+
+Leds leds;
+Switches switches;
+Adc adc;
+
+int counter;
+
+// Default interrupt handlers.
+extern "C" {
+  void NMI_Handler() { }
+  void HardFault_Handler() { while (1); }
+  void MemManage_Handler() { while (1); }
+  void BusFault_Handler() { while (1); }
+  void UsageFault_Handler() { while (1); }
+  void SVC_Handler() { }
+  void DebugMon_Handler() { }
+  void PendSV_Handler() { }
+
+
+
+// Setup Variables 
+
+uint32_t delayLength = 48000; // length in samples 1 second 
+int16_t delayLine[48000]; // should be the same as above 
+uint32_t recordHead = 0;
+double playHead1;
+double playHead2;
+double playHead3; 
+
+
+float mix;
+float feedback;
+float pitchPot1; 
+float pitchPot2; 
+float pitchPot3; 
+float pitchScale = 5; 
+
+float pitchPotOld; 
+float level1;
+float level2;
+
+  // called every 1ms
+  void SysTick_Handler() {
+    adc.Convert();
+    
+// read Mix and Feedback pots     
+mix = adc.float_value(ADC_POSITION_POTENTIOMETER_CV);
+feedback = adc.float_value(ADC_SIZE_POTENTIOMETER);
+
+// Read 3 x pitch pots, and scale to -1.5 to +1.5 
+pitchPot1 = (adc.float_value(ADC_PITCH_POTENTIOMETER)*pitchScale)-(pitchScale/2.0);
+pitchPot2 = (adc.float_value(ADC_BLEND_POTENTIOMETER)*pitchScale)-(pitchScale/2.0);
+pitchPot3 = (adc.float_value(ADC_TEXTURE_POTENTIOMETER)*pitchScale)-(pitchScale/2.0);
+
+// Lets try quantising these values 
+int divisor = 6; // relationship between divisor and pitchScale determines melodic steps 
+pitchPot1 = (int)(pitchPot1 * (float)divisor) / (float)divisor; 
+pitchPot2 = (int)(pitchPot2 * (float)divisor) / (float)divisor; 
+pitchPot3 = (int)(pitchPot3 * (float)divisor) / (float)divisor; 
+
+
+
+// Update LEDs 
+// LED 0 = record head 
+// LED 2-4 = the playback heads 
+leds.set_status(0, (float)recordHead/delayLength*255, 0);
+leds.set_status(1, (float)playHead1/delayLength*255, 0); 
+leds.set_status(2, (float)playHead2/delayLength*255, 0);
+leds.set_status(3, (float)playHead3/delayLength*255, 0);
+
+    leds.Write();
+
+  }
+}
+
+
+// called every time the codec needs one buffer of data
+void FillBuffer(Codec::Frame* input, Codec::Frame* output, size_t n) {
+
+
+  // for each sample
+  while (n--) {
+ 
+ 
+ 
+ // Add playHead1 position to Left input (for feedback), and write to delay line
+ // % delayLength = circular recording 
+  delayLine[recordHead % delayLength] = ((float)input->l + ((delayLine[(long)playHead1 % delayLength]*feedback)))/2; 
+
+// Read delayLines to output; 1 to left, 2 to right and 3 to both, adding clean signal if required 
+// NB converting to (long) removes the fractional position, so if the delay line is a 32456.332 it will select sample 32456 
+// ie No Interpolation at all 
+  output->l = (delayLine[(long)playHead1 % delayLength] + delayLine[(long)playHead3 % delayLength]/2 + (float)input->l*mix) /4;
+  output->r = (delayLine[(long)playHead2 % delayLength] + delayLine[(long)playHead3 % delayLength]/2 + (float)input->l*mix) /4;
+  
+  
+// Attempt interpolation 
+
+// float progress = playHead1 - (long)playHead1; 
+// uint16_t thisOne = delayLine[(long)playHead1 % delayLength];
+// uint16_t nextOne = delayLine[((long)playHead1+1) % delayLength];
+// uint16_t addOn = (nextOne - thisOne) * (float)progress;
+// 
+// output->l = thisOne + addOn;
+// output->r = thisOne;
+//   
+//   
+  
+  
+  
+  // Increment record head by one 
+  recordHead++;
+  
+  // Increment 
+  playHead1 = playHead1 + pitchPot1;
+  playHead2 = playHead2 + pitchPot2;
+  playHead3 = playHead3 + pitchPot3; 
+    
+    // advance the buffers by one position
+    output++;
+    input++;
+  }
+}
+
+
+
+void Init() {
+
+  // start the timer that calls SysTick_Handler (see system.h)
+  System sys;
+  sys.Init(true);
+  sys.StartTimers();
+
+  // later versions of Clouds have slight hardware difference; this is
+  // to differentiate them
+  Version version;
+  version.Init();
+  bool master = !version.revised();
+
+  // initialize the codec at 96kHz, with a buffer size of 32 samples
+  Codec codec;
+  codec.Init(master,48000);
+  codec.Start(32, &FillBuffer);
+
+  // configure and initialize the internal ADC (for CV and pots) and
+  // LED driver.
+  leds.Init();
+  adc.Init();
+}
+
+// this is the function that is called on startup
+int main(void) {
+  // initialize and configure all the devices
+  Init();
+  // and then do nothing (the timers will trigger the appropriate functions)
+  while (1) {
+  }
+}

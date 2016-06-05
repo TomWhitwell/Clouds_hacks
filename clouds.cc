@@ -16,8 +16,9 @@
 #include "clouds/drivers/adc.h"
 #include "stmlib/stmlib.h"
 #include "stmlib/dsp/dsp.h"
-#include <cmath>
-
+// #include <cmath>
+  #include <arm_math.h>
+  
 using namespace clouds;
 using namespace stmlib;
 
@@ -65,6 +66,42 @@ float pitchPotOld;
 float level1;
 float level2;
 
+
+// Quantise 0-1 pot position to a increments for delay speed changes 
+float quantiseChromatic (float raw, float octaveRange) {
+// quantise into discrete steps 
+raw = (raw/100.0)*(octaveRange * 24.0);
+// make bipolar 
+raw = raw - ((octaveRange * 12.0) / 100.0); 
+// scale up to +/- 48; 
+raw = raw * 100.0;
+// do the maths, using Twelfth Root of Two 
+// 	float top  = (abs((int)raw)-(octaveRange*6));
+
+//    	float coefficient = pow(static_cast<float>(2), (top)/12.0);
+
+//    	float coefficient = pow(2.0,static_cast<float>(top)/12);
+
+   float coefficient = pow(2.0,1/12);
+
+
+// flip the coefficient negative it input is less than 50%
+if (raw<0) coefficient = -coefficient;
+return coefficient; 
+}
+
+
+
+// Linear interpolation function 
+int16_t interpolateLin(int16_t thisOne, int16_t nextOne, float progress){
+int16_t addOn = (nextOne - thisOne) * (float)progress;
+return thisOne + addOn;
+}
+
+
+
+
+
   // called every 1ms
   void SysTick_Handler() {
     adc.Convert();
@@ -74,7 +111,11 @@ mix = adc.float_value(ADC_POSITION_POTENTIOMETER_CV);
 feedback = adc.float_value(ADC_SIZE_POTENTIOMETER);
 
 // Read pitch pot, and make bipolar, scaled according to pitchScale 
-pitchPot1 = ((adc.float_value(ADC_PITCH_POTENTIOMETER))*pitchScale)-(pitchScale/2.0);
+// pitchPot1 = ((adc.float_value(ADC_PITCH_POTENTIOMETER))*pitchScale)-(pitchScale/2.0);
+
+// Read and quantise pitch pot 
+pitchPot1 = (quantiseChromatic(adc.float_value(ADC_PITCH_POTENTIOMETER),4.0));
+
 
 // Update LEDs 
 // LED 0 = record head 
@@ -86,12 +127,6 @@ leds.set_status(3, 0, 0);
     leds.Write();
 
   }
-}
-
-// Linear interpolation function 
-int16_t interpolateLin(int16_t thisOne, int16_t nextOne, float progress){
-int16_t addOn = (nextOne - thisOne) * (float)progress;
-return thisOne + addOn;
 }
 
 

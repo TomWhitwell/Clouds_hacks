@@ -65,8 +65,6 @@ float pitchPotOld;
 float level1;
 float level2;
 
-
-
   // called every 1ms
   void SysTick_Handler() {
     adc.Convert();
@@ -77,8 +75,6 @@ feedback = adc.float_value(ADC_SIZE_POTENTIOMETER);
 
 // Read pitch pot, and make bipolar, scaled according to pitchScale 
 pitchPot1 = ((adc.float_value(ADC_PITCH_POTENTIOMETER))*pitchScale)-(pitchScale/2.0);
-
-
 
 // Update LEDs 
 // LED 0 = record head 
@@ -107,9 +103,7 @@ void FillBuffer(Codec::Frame* input, Codec::Frame* output, size_t n) {
   // for each sample
   while (n--) {
 
-
 // read floats from inputs 
-
 leftIn = static_cast<float>(input->l) / 32768.0;
 rightIn = static_cast<float>(input->r) / 32768.0;
 
@@ -120,10 +114,8 @@ int16_t head1 = interpolateLin ( delayLine[(long)playHead1 % delayLength], delay
 // Convert playback head signals into floats for DSP processing 
 headOne = static_cast<float>(head1) / 32768.0;
 
-
 // Mix delay write head signals 
-headWrite = (leftIn + (headOne * feedback))/2;
-
+headWrite = (leftIn + (headOne * feedback))/1;
 
  // Add playHead1 position to Left input (for feedback), and write to delay line
  // % delayLength = circular recording 
@@ -131,24 +123,18 @@ headWrite = (leftIn + (headOne * feedback))/2;
  // Clip to ensure no distortion 
  
  delayLine[(long)recordHead % delayLength] = static_cast<int16_t>(stmlib::SoftClip(headWrite) * 32768.0); 
- 
- 
+  
 // Mix output signals 
 leftOut = (headOne + (leftIn * mix))/2;
-
 
 // drive output
 // converting float from DSP to int for output  
 output->l = static_cast<int16_t>(stmlib::SoftClip(leftOut) * 32768.0);
 output->r = static_cast<int16_t>(stmlib::SoftClip(leftOut) * 32768.0);  //******** MONO AT THE MOMENT 
 
-  // Increment record head by one 
-  recordHead++;
-  
-  // Increment play head by relevant amount 
-  playHead1 = playHead1 + pitchPot1;
- 
-     // advance the buffers by one position
+  // Increment heads & buffers 
+  	recordHead++;
+  	playHead1 = playHead1 + pitchPot1;
     output++;
     input++;
   }

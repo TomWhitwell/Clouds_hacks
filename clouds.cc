@@ -16,8 +16,9 @@
 #include "clouds/drivers/adc.h"
 #include "stmlib/stmlib.h"
 #include "stmlib/dsp/dsp.h"
-// #include <cmath>
-  #include <arm_math.h>
+#include <cmath>
+#include "clouds/resources.h"
+
   
 using namespace clouds;
 using namespace stmlib;
@@ -68,25 +69,29 @@ float level2;
 
 
 // Quantise 0-1 pot position to a increments for delay speed changes 
-float quantiseChromatic (float raw, float octaveRange) {
-// quantise into discrete steps 
-raw = (raw/100.0)*(octaveRange * 24.0);
-// make bipolar 
-raw = raw - ((octaveRange * 12.0) / 100.0); 
-// scale up to +/- 48; 
-raw = raw * 100.0;
-// do the maths, using Twelfth Root of Two 
-// 	float top  = (abs((int)raw)-(octaveRange*6));
+float quantiseChromatic (float raw, int octaveRange) {
+raw = raw*100.0;
+float coefficient;
+switch (octaveRange){
 
-//    	float coefficient = pow(static_cast<float>(2), (top)/12.0);
+case 0:
+ coefficient = lut_quantised_playback_1[(long)raw];
+break;
 
-//    	float coefficient = pow(2.0,static_cast<float>(top)/12);
+case 1:
+ coefficient = lut_quantised_playback_2[(long)raw];
+break;
 
-   float coefficient = pow(2.0,1/12);
+case 2:
+ coefficient = lut_quantised_playback_3[(long)raw];
+break;
+
+default:
+ coefficient = lut_quantised_playback_2[(long)raw];
+}
 
 
-// flip the coefficient negative it input is less than 50%
-if (raw<0) coefficient = -coefficient;
+
 return coefficient; 
 }
 
@@ -104,18 +109,18 @@ return thisOne + addOn;
 
   // called every 1ms
   void SysTick_Handler() {
-    adc.Convert();
+
     
 // read Mix and Feedback pots     
 mix = adc.float_value(ADC_POSITION_POTENTIOMETER_CV);
 feedback = adc.float_value(ADC_SIZE_POTENTIOMETER);
 
-// Read pitch pot, and make bipolar, scaled according to pitchScale 
-// pitchPot1 = ((adc.float_value(ADC_PITCH_POTENTIOMETER))*pitchScale)-(pitchScale/2.0);
 
 // Read and quantise pitch pot 
-pitchPot1 = (quantiseChromatic(adc.float_value(ADC_PITCH_POTENTIOMETER),4.0));
-
+float quantPot = adc.float_value(ADC_TEXTURE_POTENTIOMETER)*100.0;
+int quantScale = quantPot/25; 
+pitchPot1 = (quantiseChromatic(adc.float_value(ADC_PITCH_POTENTIOMETER),quantScale));
+      adc.Convert();
 
 // Update LEDs 
 // LED 0 = record head 
@@ -127,6 +132,7 @@ leds.set_status(3, 0, 0);
     leds.Write();
 
   }
+
 }
 
 

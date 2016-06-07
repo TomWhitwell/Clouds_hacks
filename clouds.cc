@@ -86,8 +86,29 @@ case 2:
  coefficient = lut_quantised_playback_3[(long)raw];
 break;
 
+case 3:
+ coefficient = lut_quantised_playback_4[(long)raw];
+break;
+
+case 4:
+ coefficient = lut_quantised_playback_5[(long)raw];
+break;
+
+case 5:
+ coefficient = lut_quantised_playback_6[(long)raw];
+break;
+
+case 6:
+ coefficient = lut_quantised_playback_7[(long)raw];
+break;
+
+case 7:
+ coefficient = lut_quantised_playback_8[(long)raw];
+break;
+
+
 default:
- coefficient = lut_quantised_playback_2[(long)raw];
+ coefficient = lut_quantised_playback_9[(long)raw];
 }
 
 
@@ -118,7 +139,7 @@ feedback = adc.float_value(ADC_SIZE_POTENTIOMETER);
 
 // Read and quantise pitch pot 
 float quantPot = adc.float_value(ADC_TEXTURE_POTENTIOMETER)*100.0;
-int quantScale = quantPot/25; 
+int quantScale = quantPot/10; // divide by 10 to get 10 steps 
 pitchPot1 = (quantiseChromatic(adc.float_value(ADC_PITCH_POTENTIOMETER),quantScale));
       adc.Convert();
 

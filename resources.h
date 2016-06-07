@@ -65,6 +65,11 @@ extern const float lut_quantised_playback_1[];
 extern const float lut_quantised_playback_2[];
 extern const float lut_quantised_playback_3[];
 extern const float lut_quantised_playback_4[];
+extern const float lut_quantised_playback_5[];
+extern const float lut_quantised_playback_6[];
+extern const float lut_quantised_playback_7[];
+extern const float lut_quantised_playback_8[];
+extern const float lut_quantised_playback_9[];
 #define SRC_FILTER_1X_2_31 0
 #define SRC_FILTER_1X_2_31_SIZE 31
 #define SRC_FILTER_1X_2_45 1
@@ -99,6 +104,16 @@ extern const float lut_quantised_playback_4[];
 #define LUT_QUANTISED_PLAYBACK_3_SIZE 101
 #define LUT_QUANTISED_PLAYBACK_4 11
 #define LUT_QUANTISED_PLAYBACK_4_SIZE 101
+#define LUT_QUANTISED_PLAYBACK_5 12
+#define LUT_QUANTISED_PLAYBACK_5_SIZE 101
+#define LUT_QUANTISED_PLAYBACK_6 13
+#define LUT_QUANTISED_PLAYBACK_6_SIZE 101
+#define LUT_QUANTISED_PLAYBACK_7 14
+#define LUT_QUANTISED_PLAYBACK_7_SIZE 101
+#define LUT_QUANTISED_PLAYBACK_8 15
+#define LUT_QUANTISED_PLAYBACK_8_SIZE 101
+#define LUT_QUANTISED_PLAYBACK_9 16
+#define LUT_QUANTISED_PLAYBACK_9_SIZE 101
 
 }  // namespace clouds
 

@@ -17,7 +17,9 @@
 #include "stmlib/stmlib.h"
 #include "stmlib/dsp/dsp.h"
 #include <cmath>
+#include "clouds/resources.h"
 
+  
 using namespace clouds;
 using namespace stmlib;
 
@@ -65,16 +67,81 @@ float pitchPotOld;
 float level1;
 float level2;
 
+
+// Quantise 0-1 pot position to a increments for delay speed changes 
+float quantiseChromatic (float raw, int octaveRange) {
+raw = raw*100.0;
+float coefficient;
+switch (octaveRange){
+
+case 0:
+ coefficient = lut_quantised_playback_1[(long)raw];
+break;
+
+case 1:
+ coefficient = lut_quantised_playback_2[(long)raw];
+break;
+
+case 2:
+ coefficient = lut_quantised_playback_3[(long)raw];
+break;
+
+case 3:
+ coefficient = lut_quantised_playback_4[(long)raw];
+break;
+
+case 4:
+ coefficient = lut_quantised_playback_5[(long)raw];
+break;
+
+case 5:
+ coefficient = lut_quantised_playback_6[(long)raw];
+break;
+
+case 6:
+ coefficient = lut_quantised_playback_7[(long)raw];
+break;
+
+case 7:
+ coefficient = lut_quantised_playback_8[(long)raw];
+break;
+
+
+default:
+ coefficient = lut_quantised_playback_9[(long)raw];
+}
+
+
+
+return coefficient; 
+}
+
+
+
+// Linear interpolation function 
+int16_t interpolateLin(int16_t thisOne, int16_t nextOne, float progress){
+int16_t addOn = (nextOne - thisOne) * (float)progress;
+return thisOne + addOn;
+}
+
+
+
+
+
   // called every 1ms
   void SysTick_Handler() {
-    adc.Convert();
+
     
 // read Mix and Feedback pots     
 mix = adc.float_value(ADC_POSITION_POTENTIOMETER_CV);
 feedback = adc.float_value(ADC_SIZE_POTENTIOMETER);
 
-// Read pitch pot, and make bipolar, scaled according to pitchScale 
-pitchPot1 = ((adc.float_value(ADC_PITCH_POTENTIOMETER))*pitchScale)-(pitchScale/2.0);
+
+// Read and quantise pitch pot 
+float quantPot = adc.float_value(ADC_TEXTURE_POTENTIOMETER)*100.0;
+int quantScale = quantPot/10; // divide by 10 to get 10 steps 
+pitchPot1 = (quantiseChromatic(adc.float_value(ADC_PITCH_POTENTIOMETER),quantScale));
+      adc.Convert();
 
 // Update LEDs 
 // LED 0 = record head 
@@ -86,12 +153,7 @@ leds.set_status(3, 0, 0);
     leds.Write();
 
   }
-}
 
-// Linear interpolation function 
-int16_t interpolateLin(int16_t thisOne, int16_t nextOne, float progress){
-int16_t addOn = (nextOne - thisOne) * (float)progress;
-return thisOne + addOn;
 }
 
 

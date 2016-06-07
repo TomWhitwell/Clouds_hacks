@@ -154,3 +154,177 @@ for i in xrange(n):
   pitch[start_index:end_index] = notches[i] + (notches[i + 1] - notches[i]) * xfade
 
 lookup_tables.append(('quantized_pitch', pitch))
+
+"""----------------------------------------------------------------------------
+1: Quantise to Equal Temprament, Octave range 1
+----------------------------------------------------------------------------"""
+
+TABLE_SIZE = 100
+octaveRange = 1
+raw = numpy.arange(0.0, TABLE_SIZE + 1) / TABLE_SIZE 
+# quantise into discrete steps 
+raw = (raw/100.0)*(octaveRange * 24.0)
+#  make bipolar 
+raw = raw - ((octaveRange * 12.0) / 100.0)
+#  scale up to +/- 48
+raw = raw * 100
+result = numpy.power(2.0,(abs(numpy.round(raw))-(octaveRange*6))/12.0)
+# result = numpy.power(2, size/48)
+result = result - ((raw < 0)*result)*2
+lookup_tables.append(('quantised_playback_1', result))
+
+"""----------------------------------------------------------------------------
+2: Quantise to Equal Temprament, Octave range 2
+----------------------------------------------------------------------------"""
+
+TABLE_SIZE = 100
+octaveRange = 2
+raw = numpy.arange(0.0, TABLE_SIZE + 1) / TABLE_SIZE 
+# quantise into discrete steps 
+raw = (raw/100.0)*(octaveRange * 24.0)
+#  make bipolar 
+raw = raw - ((octaveRange * 12.0) / 100.0)
+#  scale up to +/- 48
+raw = raw * 100
+result = numpy.power(2.0,(abs(numpy.round(raw))-(octaveRange*6))/12.0)
+# result = numpy.power(2, size/48)
+result = result - ((raw < 0)*result)*2
+lookup_tables.append(('quantised_playback_2', result))
+
+"""----------------------------------------------------------------------------
+3: Quantise to Equal Temprament, Octave range 3
+----------------------------------------------------------------------------"""
+
+TABLE_SIZE = 100
+octaveRange = 3
+raw = numpy.arange(0.0, TABLE_SIZE + 1) / TABLE_SIZE 
+# quantise into discrete steps 
+raw = (raw/100.0)*(octaveRange * 24.0)
+#  make bipolar 
+raw = raw - ((octaveRange * 12.0) / 100.0)
+#  scale up to +/- 48
+raw = raw * 100
+result = numpy.power(2.0,(abs(numpy.round(raw))-(octaveRange*6))/12.0)
+# result = numpy.power(2, size/48)
+result = result - ((raw < 0)*result)*2
+lookup_tables.append(('quantised_playback_3', result))
+
+"""----------------------------------------------------------------------------
+4: Quantise to Equal Temprament, Octave range 4
+----------------------------------------------------------------------------"""
+
+TABLE_SIZE = 100
+octaveRange = 4
+raw = numpy.arange(0.0, TABLE_SIZE + 1) / TABLE_SIZE 
+# quantise into discrete steps 
+raw = (raw/100.0)*(octaveRange * 24.0)
+#  make bipolar 
+raw = raw - ((octaveRange * 12.0) / 100.0)
+#  scale up to +/- 48
+raw = raw * 100
+result = numpy.power(2.0,(abs(numpy.round(raw))-(octaveRange*6))/12.0)
+# result = numpy.power(2, size/48)
+result = result - ((raw < 0)*result)*2
+lookup_tables.append(('quantised_playback_4', result))
+
+
+"""----------------------------------------------------------------------------
+5: Quantise to Whole-Tone (6 steps per octave), Octave range 2
+----------------------------------------------------------------------------"""
+
+TABLE_SIZE = 100
+octaveRange = 2
+raw = numpy.arange(0.0, TABLE_SIZE + 1) / TABLE_SIZE 
+# quantise into discrete steps 
+raw = (raw/100.0)*(octaveRange * 24.0)
+#  make bipolar 
+raw = raw - ((octaveRange * 12.0) / 100.0)
+#  scale up to +/- 48
+raw = raw * 100
+result = numpy.power(2.0,(abs(numpy.round(raw))-(octaveRange*6))/6.0)
+# result = numpy.power(2, size/48)
+result = result - ((raw < 0)*result)*2
+lookup_tables.append(('quantised_playback_5', result))
+
+
+
+"""----------------------------------------------------------------------------
+6: Quantise to Dim6 (4 steps per octave), Octave range 2
+----------------------------------------------------------------------------"""
+
+TABLE_SIZE = 100
+octaveRange = 2
+raw = numpy.arange(0.0, TABLE_SIZE + 1) / TABLE_SIZE 
+# quantise into discrete steps 
+raw = (raw/100.0)*(octaveRange * 24.0)
+#  make bipolar 
+raw = raw - ((octaveRange * 12.0) / 100.0)
+#  scale up to +/- 48
+raw = raw * 100
+result = numpy.power(2.0,(abs(numpy.round(raw))-(octaveRange*6))/4.0)
+# result = numpy.power(2, size/48)
+result = result - ((raw < 0)*result)*2
+
+lookup_tables.append(('quantised_playback_6', result))
+
+
+
+"""----------------------------------------------------------------------------
+7: Quantise to 7thSharpFifth (3 steps per octave), Octave range 2
+----------------------------------------------------------------------------"""
+
+TABLE_SIZE = 100
+octaveRange = 2
+raw = numpy.arange(0.0, TABLE_SIZE + 1) / TABLE_SIZE 
+# quantise into discrete steps 
+raw = (raw/100.0)*(octaveRange * 24.0)
+#  make bipolar 
+raw = raw - ((octaveRange * 12.0) / 100.0)
+#  scale up to +/- 48
+raw = raw * 100
+result = numpy.power(2.0,(abs(numpy.round(raw))-(octaveRange*6))/3.0)
+# result = numpy.power(2, size/48)
+result = result - ((raw < 0)*result)*2
+
+lookup_tables.append(('quantised_playback_7', result))
+
+
+"""----------------------------------------------------------------------------
+8: Quantise to 2 steps per octave, Octave range 2
+----------------------------------------------------------------------------"""
+
+TABLE_SIZE = 100
+octaveRange = 2
+raw = numpy.arange(0.0, TABLE_SIZE + 1) / TABLE_SIZE 
+# quantise into discrete steps 
+raw = (raw/100.0)*(octaveRange * 24.0)
+#  make bipolar 
+raw = raw - ((octaveRange * 12.0) / 100.0)
+#  scale up to +/- 48
+raw = raw * 100
+result = numpy.power(2.0,(abs(numpy.round(raw))-(octaveRange*6))/2.0)
+# result = numpy.power(2, size/48)
+result = result - ((raw < 0)*result)*2
+
+lookup_tables.append(('quantised_playback_8', result))
+
+
+"""----------------------------------------------------------------------------
+9: Big octaves
+----------------------------------------------------------------------------"""
+
+TABLE_SIZE = 100
+octaveRange = 1
+raw = numpy.arange(0.0, TABLE_SIZE + 1) / TABLE_SIZE 
+# quantise into discrete steps 
+raw = (raw/100.0)*(octaveRange * 12.0)
+#  make bipolar 
+raw = raw - ((octaveRange * 6.0) / 100.0)
+#  scale up to +/- 48
+raw = raw * 130
+result = numpy.power(2.0,(abs(numpy.round(raw))-(octaveRange*6))/1)
+# result = numpy.power(2, size/48)
+result = result - ((raw < 0)*result)*2
+
+lookup_tables.append(('quantised_playback_9', result))
+

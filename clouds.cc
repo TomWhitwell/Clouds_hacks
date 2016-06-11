@@ -19,7 +19,9 @@
 #include <cmath>
 #include "clouds/resources.h"
 
-  
+#define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
+
+
 using namespace clouds;
 using namespace stmlib;
 
@@ -55,6 +57,7 @@ float leftOut;
 float rightOut; 
 
 float headOne;
+float headOneA;
 float headWrite;
 
 float mix;  // from Position knob
@@ -172,12 +175,24 @@ rightIn = static_cast<float>(input->r) / 32768.0;
 
 // Read delayLine to variables, with linear interpolation between points 
 int16_t head1 = interpolateLin ( delayLine[(long)playHead1 % delayLength], delayLine[((long)playHead1+1) % delayLength], playHead1 - (long)playHead1 ); 
+// 1a is a second head for crossfading opposite phase   
+int16_t head1a = interpolateLin ( delayLine[((long)playHead1 + (delayLength/2)) % delayLength], delayLine[((long)playHead1+1 + (delayLength/2)) % delayLength], playHead1 - (long)playHead1 ); 
+
 
 // Convert playback head signals into floats for DSP processing 
 headOne = static_cast<float>(head1) / 32768.0;
+headOneA = static_cast<float>(head1a) / 32768.0;
+
+// Crossfade to avoid clicks when crossing the record head
+float headOneProximity = abs( abs((long)recordHead % delayLength) -  abs((long)playHead1 % delayLength));
+float headOneFade = (constrain(headOneProximity-500,0,2000)/2)/1000.0;
+headOne = Crossfade(headOneA, headOne, headOneFade);
+
+
+
 
 // Mix delay write head signals 
-headWrite = (leftIn + (headOne * feedback))/1;
+headWrite = (leftIn + (headOne * feedback))/1.1f;
 
  // Add playHead1 position to Left input (for feedback), and write to delay line
  // % delayLength = circular recording 
@@ -192,7 +207,7 @@ leftOut = (headOne + (leftIn * mix))/2;
 // drive output
 // converting float from DSP to int for output  
 output->l = static_cast<int16_t>(stmlib::SoftClip(leftOut) * 32768.0);
-output->r = static_cast<int16_t>(stmlib::SoftClip(leftOut) * 32768.0);  //******** MONO AT THE MOMENT 
+output->r = input->l;  //******** MONO AT THE MOMENT 
 
   // Increment heads & buffers 
   	recordHead++;
